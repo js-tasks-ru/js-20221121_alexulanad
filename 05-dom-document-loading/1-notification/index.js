@@ -1,4 +1,6 @@
 export default class NotificationMessage {
+  static notification;
+
   constructor(message = "No message", {
     duration = 2000,
     type = "success",
@@ -12,7 +14,7 @@ export default class NotificationMessage {
 
   get template() {
     return `
-      <div class="notification ${this.type}" style="--value:${this.duration/1000}s">
+      <div id="elem" class="notification ${this.type}" style="--value:${this.duration/1000}s">
         <div class="timer"></div>
         <div class="inner-wrapper">
           <div class="notification-header">${this.type}</div>
@@ -31,23 +33,30 @@ export default class NotificationMessage {
   }
 
   show(target = document.body) {
+    if (NotificationMessage.notification) {
+      NotificationMessage.notification.remove();
+    }
+
     target.append(this.element);
 
-    setTimeout( () => {
-      this.destroy();
-    }, this.duration - 10) // сокращаем время, чтобы убрать мерцание в момент удаления
+    this.timer = setTimeout( () => {
+      this.remove();
+    }, this.duration)
+
+    NotificationMessage.notification = this;
   }
 
   remove() {
+    clearTimeout(this.timer);
+
     if (this.element) {
       this.element.remove();
     }
-
-    return this;
   }
 
   destroy() {
-    this.element.remove();
     this.remove();
+    this.element = null;
+    NotificationMessage.notification = null;
   }
 }
